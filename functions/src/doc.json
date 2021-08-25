@@ -1,0 +1,252 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Fraud",
+    "description": "API para validar transacciones",
+    "contact": {
+      "email": "jonathan.paul.pm@gmail.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-apifroud.cloudfunctions.net/api/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "frauds"
+    }
+  ],
+  "paths": {
+    "/frauds": {
+      "get": {
+        "tags": [
+          "frauds"
+        ],
+        "summary": "Obtiene todas las transacciones validadas y si manda los datos de page y size, la consulta sera paginada",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "numero de la pagina",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "numero de registros por pagina",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "si manda la pagina y la cantidad de registros, entonces devolverá el schema 'transaccionPaginada' en caso contrario devolvera un arreglo de transacciones con el schema 'transaction'"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "frauds"
+        ],
+        "summary": "Envia consulta para validar transacción",
+        "requestBody": {
+          "description": "Envia la transaccion a validar",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/transactionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "respuesta si es que la transaccion es valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "respuesta si es que los datos de la transaccion son incorrectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "respuesta si es que la transaccion no es valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/frauds/{id}": {
+      "get": {
+        "tags": [
+          "frauds"
+        ],
+        "summary": "Obtiene la transaccion por id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de transaccion",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "devuelve la transaccion validada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/transaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "tags": [
+          "frauds"
+        ],
+        "summary": "Se obtiene la cantidad de validaciones correctas e incorrectas",
+        "responses": {
+          "200": {
+            "description": "datos estadisticos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/stats"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string"
+          },
+          "idFraud": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "transactionRequest": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "transaccionPaginada": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "paginas": {
+            "type": "number"
+          },
+          "datosPorPagina": {
+            "type": "number"
+          },
+          "pagina": {
+            "type": "number"
+          },
+          "datos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "stats": {
+        "type": "object",
+        "properties": {
+          "count_fraud": {
+            "type": "number"
+          },
+          "count_not_fraud": {
+            "type": "number"
+          },
+          "ratio": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}
